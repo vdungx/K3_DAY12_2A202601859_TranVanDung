@@ -61,7 +61,10 @@ async def lifespan(_app: FastAPI):
     lifecycle.install()
     log_event("service_started", service=SERVICE_NAME, version=SERVICE_VERSION)
     yield
-    log_event("service_stopped", service=SERVICE_NAME)
+    try:
+        get_store().client.close()
+    finally:
+        log_event("service_stopped", service=SERVICE_NAME)
 
 
 app = FastAPI(title="Day 12 Production Agent", version=SERVICE_VERSION, lifespan=lifespan)
