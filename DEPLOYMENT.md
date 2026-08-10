@@ -10,7 +10,7 @@
 |-----|----------|
 | Họ và tên | Trần Văn Dũng |
 | Mã học viên | 2A202601859 |
-| Repo hiện tại | https://github.com/vdungx/DAY12_2A20261859_TranVanDung |
+| Repo hiện tại | https://github.com/vdungx/DAY12_2A202601859_TranVanDung |
 | Tên bài nộp yêu cầu | `K3-DAY12-2A202601859-TranVanDung` |
 
 ## Service
