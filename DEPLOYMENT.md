@@ -1,101 +1,77 @@
 # Thông Tin Deploy — Checkpoint 5
 
-> Điền file này sau khi deploy xong. `pytest tests/test_cp5.py` đọc file này
-> để tìm địa chỉ service của bạn và gọi thử.
+> Service đã được deploy bằng Render Blueprint từ `render.yaml`.
 >
-> **Chỉ ghi TÊN biến môi trường, tuyệt đối không dán giá trị API key vào đây.**
-> Repo này công khai — dán khóa vào là mất khóa.
+> **Chỉ ghi TÊN biến môi trường, tuyệt đối không ghi giá trị API key.**
 
 ## Thông Tin Học Viên
 
 | Mục | Nội dung |
 |-----|----------|
-| Họ và tên | (điền họ tên) |
-| Mã học viên | (điền mã học viên) |
-| Repo | (điền link repo DAY12-...) |
+| Họ và tên | Trần Văn Dũng |
+| Mã học viên | 2A202601859 |
+| Repo hiện tại | https://github.com/vdungx/DAY12_2A20261859_TranVanDung |
+| Tên bài nộp yêu cầu | `K3-DAY12-2A202601859-TranVanDung` |
 
 ## Service
 
 | Mục | Nội dung |
 |-----|----------|
-| Public URL | https://TODO-thay-bang-url-that.up.railway.app |
-| Platform | Railway / Render / Cloud Run — (điền platform bạn dùng) |
-| Ngày deploy | (điền ngày) |
+| Public URL | https://day12-agent-kh0x.onrender.com |
+| Platform | Render |
+| Ngày deploy | 2026-08-10 |
 
 ## Biến Môi Trường Đã Set Trên Cloud
 
-Ghi tên biến và **nguồn giá trị**, không ghi giá trị:
-
 | Biến | Đã set | Ghi chú |
 |------|--------|---------|
-| `PORT` | ✅ | platform tự gán |
-| `AGENT_API_KEY` | ✅ | đặt trong dashboard, không nằm trong repo |
-| `REDIS_URL` | ✅ | (điền: Redis add-on của platform / Upstash / ...) |
+| `PORT` | ✅ | Render tự gán |
+| `AGENT_API_KEY` | ✅ | Secret đặt trong Render Dashboard, không nằm trong repo |
+| `REDIS_URL` | ✅ | Render Key Value internal connection string |
 | `RATE_LIMIT_PER_MINUTE` | ✅ | 10 |
 | `MONTHLY_BUDGET_USD` | ✅ | 10.0 |
 | `LOG_LEVEL` | ✅ | INFO |
 
 ## Lệnh Kiểm Tra
 
-Thay `<URL>` bằng Public URL ở trên:
+```powershell
+curl.exe -i https://day12-agent-kh0x.onrender.com/health
+curl.exe -i https://day12-agent-kh0x.onrender.com/ready
 
-```bash
-# 1. Liveness — mong đợi 200 {"status":"ok"}
-curl -i <URL>/health
+'{"question":"Hello"}' |
+  curl.exe -i -X POST `
+    "https://day12-agent-kh0x.onrender.com/ask" `
+    -H "Content-Type: application/json" `
+    --data-binary "@-"
 
-# 2. Readiness — mong đợi 200 {"status":"ready"} (đã nối được Redis)
-curl -i <URL>/ready
-
-# 3. Không có API key — mong đợi 401
-curl -i -X POST <URL>/ask \
-  -H "Content-Type: application/json" \
-  -d '{"question":"Hello"}'
-
-# 4. Có API key — mong đợi 200 kèm câu trả lời
-curl -i -X POST <URL>/ask \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: $AGENT_API_KEY" \
-  -H "X-User-Id: sv-test" \
-  -d '{"question":"Deploy là gì?"}'
-
-# 5. Rate limit — gọi 15 lần, những lần cuối phải trả 429
-for i in $(seq 1 15); do
-  curl -s -o /dev/null -w "%{http_code} " -X POST <URL>/ask \
-    -H "Content-Type: application/json" \
-    -H "X-API-Key: $AGENT_API_KEY" \
-    -H "X-User-Id: sv-test" \
-    -d '{"question":"test"}'
-done; echo
+'{"question":"Deploy la gi?"}' |
+  curl.exe -i -X POST `
+    "https://day12-agent-kh0x.onrender.com/ask" `
+    -H "Content-Type: application/json" `
+    -H "X-API-Key: $env:DEPLOY_API_KEY" `
+    -H "X-User-Id: cp5-live-test" `
+    --data-binary "@-"
 ```
 
 ## Kết Quả Chạy Thật
 
-Dán output của các lệnh trên vào đây:
-
-```
-(điền output)
+```text
+GET  /health                  -> 200 {"status":"ok","service":"day12-agent","version":"1.0.0"}
+GET  /ready                   -> 200 {"status":"ready","redis":true}
+POST /ask (không API key)     -> 401 {"detail":"invalid or missing API key"}
+POST /ask (API key hợp lệ)    -> 200, user_id=cp5-live-test, history_length=0, cost_usd=2.265e-05
 ```
 
 ## Ảnh Chụp Màn Hình
 
-Đặt ảnh trong thư mục `screenshots/`:
+- `screenshots/dashboard.png` — Render Dashboard hiển thị deploy thành công.
+- `screenshots/health.png` — `/health` trả 200.
+- `screenshots/ready.png` — `/ready` trả 200 và Redis sẵn sàng.
+- `screenshots/ask401.png` — `/ask` không API key trả 401.
+- `screenshots/ask200.png` — `/ask` có API key hợp lệ trả 200.
 
-- `screenshots/dashboard.png` — trang quản lý service trên platform
-- `screenshots/health.png` — kết quả gọi `/health` từ trình duyệt hoặc curl
+Các ảnh không hiển thị giá trị API key.
 
----
+## Phương Án Dự Phòng
 
-## Nếu Dùng Phương Án Dự Phòng
-
-Không đăng ký được tài khoản cloud? Vẫn nộp được bài, nhưng CP5 tối đa 60% điểm:
-
-1. Đặt `LOCAL_FALLBACK=true` trong `.env`
-2. Chạy `docker compose up -d` rồi kiểm tra `docker compose ps`
-3. Chụp màn hình vào `screenshots/`
-4. Chạy `pytest tests/test_cp5.py -v` — bộ test sẽ tự chuyển sang kiểm tra
-   `http://localhost:8000`
-5. Ghi rõ lý do không deploy được vào phần dưới đây:
-
-```
-(điền lý do nếu dùng phương án dự phòng, ngược lại xóa mục này)
-```
+Không dùng phương án dự phòng; service đã deploy thành công trên Render.
